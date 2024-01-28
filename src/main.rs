@@ -3,7 +3,7 @@ use std::io::Write;
 use std::io::{stdin, stdout};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-use std::os::windows::process;
+
 use std::path::Path;
 use std::process::Command;
 use std::process::Stdio;
@@ -17,7 +17,7 @@ fn read(success: bool) {
     let current_directory = env::current_dir().unwrap();
 
     let current_directory_str = current_directory.to_string_lossy();
-    let mut modified_path = current_directory_str.replace(&*home_directory.to_string_lossy(), "~");
+    let modified_path = current_directory_str.replace(&*home_directory.to_string_lossy(), "~");
 
 
 
@@ -30,13 +30,15 @@ fn read(success: bool) {
     let mut input = String::new();
     stdout().flush().unwrap();
     stdin().read_line(&mut input).expect("error");
-    let args: Vec<&str> = input.split(" ").collect();
-    parser(args)
+    
+    parser(input)
 }
-fn parser(args: Vec<&str>) {
+fn parser(input: String) {
+    
+    let args: Vec<&str> = input.split(" ").collect();
     let maincmd = args[0].to_string(); // maincmd string
-    let mut pipe: bool = false;
-    let mut pipesplitcmds: Vec<&str> = Vec::new(); // | split!
+    let _pipe: bool = false;
+    let _pipesplitcmds: Vec<&str> = Vec::new(); // | split!
     let mut option: Vec<&str> = Vec::new(); // option vector
     let mut a: Vec<&str> = Vec::new(); // else vector
     let mut all: Vec<&str> = Vec::new(); //args vector
@@ -74,11 +76,12 @@ fn parser(args: Vec<&str>) {
             option.push(va);
         } else {
             a.push(va);
+            println!("{}", a.len())
         }
 
         i += 1;
     }
-    let mut i: i32 = 0;
+    let _i: i32 = 0;
     if a.len() == 0 {
         read(true); //Which is the best, true or false?
     } else if maincmd.trim() == "exit" {
@@ -252,7 +255,7 @@ fn ls_exec(l: i32, _a: Vec<&str>, lo: bool) {
     }
     read(_success);
 }
-fn pwd_exec(l: i32, h: bool) {
+fn pwd_exec(_l: i32, h: bool) {
     let home_directory = env::home_dir().unwrap();
     let current_directory = env::current_dir().unwrap();
 
@@ -296,13 +299,15 @@ fn yes_exec(l: i32, h: bool, a: Vec<&str>) {
 }
 fn elsecmd_exec(maincmd: String, all: Vec<&str>) {
     let args: Vec<&str> = all.clone();
-    let success: bool = true;
+    let _success: bool = true;
     Command::new(maincmd.trim())
         .args(args)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .output();
+
+    read(_success);
 }
 fn true_exec(l: i32, h: bool) {
     let mut success = true;
@@ -344,7 +349,7 @@ fn false_exec(l: i32, h: bool) {
     }
     read(success);
 }
-fn mkdir_exec(l: i32, h: bool, p: bool, a: Vec<&str>) {
+fn mkdir_exec(l: i32, _h: bool, p: bool, a: Vec<&str>) {
     let mut success = true;
     println!("mkdir exec!");
     if l == 2 {
@@ -370,14 +375,14 @@ fn mkdir_exec(l: i32, h: bool, p: bool, a: Vec<&str>) {
     }
     read(success);
 }
-fn rmpathmake(a: String, r: bool) -> String {
+fn rmpathmake(_a: String, r: bool) -> String {
     let mut m = String::new();
     if r == true {
         m = format!("{}/", m);
     }
     return m;
 }
-fn rm_exec(l: i32, h: bool, r: bool, a: Vec<&str>) {
+fn rm_exec(l: i32, _h: bool, r: bool, a: Vec<&str>) {
     let mut success = true;
     if l == 2 {
         if r == false {
@@ -389,7 +394,7 @@ fn rm_exec(l: i32, h: bool, r: bool, a: Vec<&str>) {
             success = false;
         }
     } else if l >= 3 {
-        let mut modifiedpath = rmpathmake(a[1].trim().to_string(), r);
+        let modifiedpath = rmpathmake(a[1].trim().to_string(), r);
         if r == false {
             fs::remove_file(modifiedpath).unwrap_or_else(|why| {
                 println!("! {:?}", why.kind());
